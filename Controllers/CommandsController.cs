@@ -1,5 +1,7 @@
-﻿using CommanderWebAPI.Data;
+﻿using AutoMapper;
+using CommanderWebAPI.Data;
 using CommanderWebAPI.Data.Implementation;
+using CommanderWebAPI.DTOs;
 using CommanderWebAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -11,26 +13,44 @@ namespace CommanderWebAPI.Controllers
     public class CommandsController : Controller
     {
         private readonly ICommanderRepo _repository;
+        private readonly IMapper _mapper;
 
-        public CommandsController(ICommanderRepo repository)
+        public CommandsController(ICommanderRepo repository, IMapper mapper)
         {
             _repository = repository;
+            _mapper = mapper;
         }
             
         //private readonly MockCommanderRepo _mockCommanderRepo = new MockCommanderRepo();
-
+        //GET api/commands/
         [HttpGet]
-        public ActionResult <IEnumerable<Command>> GetAllCommands()
+        public ActionResult <IEnumerable<CommandReadDTO>> GetAllCommands()
         {
             var commands = _repository.GetAllCommands();
-            return Ok(commands);
+            return Ok(_mapper.Map<CommandReadDTO>(commands));
         }
 
+        //GET api/commands/{id}
         [HttpGet("{id}")]
-        public ActionResult <Command> GetCommandById(int id)
+        public ActionResult <CommandReadDTO> GetCommandById(int id)
         {
             var command = _repository.GetCommandById(id);
-            return Ok(command);
+            if(command == null)
+            {
+                return NotFound();
+            }
+            return Ok(_mapper.Map<CommandReadDTO>(command));
         }
+
+        //POST api/commands
+        public ActionResult<CommandCreateDTO> CreateCommands (CommandCreateDTO commandCreateDTO)
+        {
+           var commandModel = _mapper.Map<Command>(commandCreateDTO);
+            _repository.CreateCommand(commandModel);
+            return Ok(commandModel);
+        }
+
+        //POST api/commands/{id}
+
     }
 }
