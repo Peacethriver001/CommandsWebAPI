@@ -20,18 +20,18 @@ namespace CommanderWebAPI.Controllers
             _repository = repository;
             _mapper = mapper;
         }
-            
+        
         //private readonly MockCommanderRepo _mockCommanderRepo = new MockCommanderRepo();
         //GET api/commands/
         [HttpGet]
         public ActionResult <IEnumerable<CommandReadDTO>> GetAllCommands()
         {
             var commands = _repository.GetAllCommands();
-            return Ok(_mapper.Map<CommandReadDTO>(commands));
+            return Ok(_mapper.Map<IEnumerable<CommandReadDTO>>(commands));
         }
 
         //GET api/commands/{id}
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name = "GetCommandById")]
         public ActionResult <CommandReadDTO> GetCommandById(int id)
         {
             var command = _repository.GetCommandById(id);
@@ -47,10 +47,32 @@ namespace CommanderWebAPI.Controllers
         {
            var commandModel = _mapper.Map<Command>(commandCreateDTO);
             _repository.CreateCommand(commandModel);
-            return Ok(commandModel);
+            _repository.SaveChanges();
+
+            var commandReadDTO  = _mapper.Map<CommandReadDTO>(commandModel);
+
+            return CreatedAtRoute(nameof(GetCommandById), new { Id = commandReadDTO.Id }, commandReadDTO);
         }
 
-        //POST api/commands/{id}
+        //PUT api/commands/{id}
+        [HttpPut("{id}")]
+        public ActionResult UpdateCommand(int id, CommandUpdateDTO commandUpdateDTO)
+        {
+            var commandModelFromRepo = _repository.GetCommandById(id);
+
+            if (commandModelFromRepo == null)
+            {
+                return NotFound();
+            }
+
+            _mapper.Map(commandUpdateDTO, commandModelFromRepo);
+
+            _repository.UpdateCommand(commandModelFromRepo);
+
+            _repository.SaveChanges();
+
+            return NoContent();
+        }
 
     }
 }
