@@ -24,6 +24,16 @@ namespace CommanderWebAPI.Data.Implementation
             _context.Commands.Add(command);
         }
 
+        public void DeleteCommand(Command command)
+        {
+            if (command == null)
+            {
+                throw new ArgumentNullException(nameof(command));
+            }
+
+            _context.Commands.Remove(command);
+        }
+
         public IEnumerable<Command> GetAllCommands()
         {
             return _context.Commands.ToList();
@@ -41,7 +51,12 @@ namespace CommanderWebAPI.Data.Implementation
 
         public void UpdateCommand(Command command)
         {
-            return 
+            if (command == null)
+            {
+                throw new ArgumentNullException(nameof(command));
+            }
+
+            _context.Commands.Update(command);
         }
     }
 }
